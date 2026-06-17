@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#F5C800">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SMHB">
+<link rel="manifest" href="/manifest.json">
+<title>SMHB Handball</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--Y:#F5C800;--YD:#C9A200;--YLL:#1e1900;--BG:#0a0a0a;--S1:#161616;--S2:#1e1e1e;--S3:#252525;--S4:#333;--G:#888;--GL:#ccc;--GR:#22c55e;--RD:#ef4444}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--BG);color:var(--Y);min-height:100vh;overflow-x:hidden;width:100%;max-width:100vw}
+button{cursor:pointer;font-family:inherit;border:none}
+input,select,textarea{font-family:inherit}
+
+/* AUTH */
+.auth-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:20px;background:var(--BG)}
+.auth-logo{background:var(--Y);color:var(--BG);font-weight:900;font-size:28px;padding:10px 20px;border-radius:8px;letter-spacing:2px;margin-bottom:8px}
+.auth-sub{font-size:11px;color:var(--G);letter-spacing:3px;text-transform:uppercase;margin-bottom:28px}
+.auth-box{width:100%;max-width:400px;background:var(--S1);border:1px solid var(--S3);border-radius:14px;padding:24px}
+.auth-tabs{display:flex;background:var(--BG);border-radius:8px;padding:4px;margin-bottom:20px;gap:4px}
+.auth-tab{flex:1;padding:9px;border-radius:6px;font-size:13px;font-weight:700;background:none;color:var(--G)}
+.auth-tab.active{background:var(--Y);color:var(--BG)}
+.auth-err{margin-top:12px;padding:10px;background:#1a0a0a;border:1px solid #7f1d1d;border-radius:8px;color:#f87171;font-size:13px;text-align:center;display:none}
+.auth-ok{margin-top:12px;padding:10px;background:#0a1a0a;border:1px solid #1d7f1d;border-radius:8px;color:#87f187;font-size:13px;text-align:center;display:none}
+
+/* FORM */
+.fg{margin-bottom:12px}
+.fl{font-size:11px;font-weight:700;color:var(--Y);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;display:block}
+.fi{width:100%;background:var(--S2);border:1px solid var(--S3);border-radius:8px;padding:10px 12px;color:var(--Y);font-size:14px}
+.fi:focus{outline:none;border-color:var(--Y)}
+.fi::placeholder{color:var(--S4)}
+select.fi option{background:var(--S1);color:var(--Y)}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn-y{width:100%;background:var(--Y);color:var(--BG);border:none;padding:13px;border-radius:8px;font-size:15px;font-weight:800;margin-top:4px}
+.btn-y:hover{background:var(--YD)}
+.btn-yout{background:transparent;border:1.5px solid var(--Y);color:var(--Y);padding:8px 16px;border-radius:7px;font-size:13px;font-weight:700}
+.btn-ok{background:transparent;border:1.5px solid var(--GR);color:var(--GR);padding:8px 16px;border-radius:7px;font-size:13px;font-weight:700}
+.btn-del{background:transparent;border:1px solid var(--S4);color:var(--G);padding:6px 10px;border-radius:6px;font-size:12px}
+.btn-del:hover{border-color:var(--RD);color:var(--RD)}
+.btn-sm{padding:6px 14px;border-radius:6px;font-size:12px;font-weight:700}
+
+/* APP */
+.app{display:none;background:var(--BG);min-height:100vh}
+.topbar{background:var(--BG);border-bottom:2px solid var(--Y);padding:0 12px;display:flex;align-items:center;justify-content:space-between;height:54px;position:sticky;top:0;z-index:100;width:100%;box-sizing:border-box;overflow:hidden}
+.tl{display:flex;align-items:center;gap:8px}
+.logo{background:var(--Y);color:var(--BG);font-weight:900;font-size:15px;padding:4px 10px;border-radius:4px;letter-spacing:1px}
+.cat-sel{background:var(--S1);border:1px solid var(--S3);border-radius:6px;color:var(--Y);font-size:12px;font-weight:700;padding:4px 8px}
+.tr{display:flex;align-items:center;gap:8px}
+.role-tag{font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px}
+.rt-admin{background:#7c3aed;color:#fff}
+.rt-coach{background:var(--Y);color:var(--BG)}
+.rt-player{background:var(--S3);color:var(--GL);border:1px solid var(--S4)}
+.rt-parent{background:#1e3a5f;color:#60a5fa;border:1px solid #2563eb}
+.notif-btn{background:none;color:var(--Y);padding:6px;position:relative}
+.notif-btn i{font-size:22px}
+.nbadge{position:absolute;top:2px;right:2px;background:var(--RD);color:#fff;font-size:9px;font-weight:700;border-radius:50%;width:16px;height:16px;display:none;align-items:center;justify-content:center}
+.logout-btn{background:none;border:1px solid var(--S4);color:var(--G);font-size:11px;font-weight:700;padding:5px 10px;border-radius:6px}
+
+/* NAV */
+.nav{display:grid;background:var(--BG);padding:8px 8px 0;border-bottom:2px solid var(--Y);width:100%;box-sizing:border-box}
+.nav-btn{padding:10px 2px 9px;font-size:8px;font-weight:800;letter-spacing:.3px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border-radius:7px 7px 0 0;text-transform:uppercase;color:var(--Y);border:2px solid var(--Y);border-bottom:none;background:var(--BG);opacity:.5;white-space:nowrap;text-align:center;overflow:hidden}
+.nav-btn i{font-size:20px}
+.nav-btn.active{background:var(--Y);color:var(--BG);opacity:1}
+
+/* VIEWS */
+.view{display:none;padding:14px 14px 100px;max-width:860px;margin:0 auto}
+.view.active{display:block}
+
+/* SECTION LABEL */
+.sl{display:flex;align-items:center;gap:8px;margin:16px 0 10px;font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--Y)}
+.sl-line{flex:1;height:1px;background:var(--S3)}
+.sl i{font-size:14px}
+
+/* CARDS */
+.card{background:var(--S1);border:1px solid var(--S3);border-radius:10px;padding:14px 16px;margin-bottom:8px}
+.card.match{border-left:3px solid var(--Y)}
+.card.training{border-left:3px solid var(--S4)}
+.card-title{font-weight:700;font-size:15px;color:var(--Y)}
+.card-meta{font-size:12px;color:var(--G);margin-top:4px;display:flex;align-items:center;gap:5px}
+.card-meta i{font-size:13px}
+.card-foot{display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid var(--S3)}
+.tags{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px}
+.tag{font-size:10px;font-weight:800;padding:3px 9px;border-radius:20px;display:inline-block}
+.t-match{background:var(--Y);color:var(--BG)}
+.t-train{background:var(--S3);color:var(--G);border:1px solid var(--S4)}
+.t-home{background:var(--YLL);color:var(--Y);border:1px solid var(--YD)}
+.t-away{background:#1a0a0a;color:#f87171;border:1px solid #7f1d1d}
+.t-present{background:#0a1a0a;color:var(--GR);border:1px solid var(--GR)}
+.t-absent{background:#1a0a0a;color:#f87171;border:1px solid var(--RD)}
+.pax{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--G)}
+.pax i{font-size:14px;color:var(--Y)}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.stat{background:var(--S1);border:1px solid var(--S3);border-radius:10px;padding:14px 10px;text-align:center}
+.stat-n{font-size:26px;font-weight:900;color:var(--Y);line-height:1}
+.stat-l{font-size:10px;font-weight:700;color:var(--G);letter-spacing:1px;text-transform:uppercase;margin-top:4px}
+
+/* CALENDAR */
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.cal-arrow{background:var(--S2);border:1px solid var(--S3);color:var(--Y);width:36px;height:36px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.cal-month{font-size:17px;font-weight:800;color:var(--Y)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-dn{text-align:center;font-size:9px;font-weight:800;color:var(--G);padding:5px 2px;text-transform:uppercase}
+.cal-day{min-height:38px;border-radius:6px;background:var(--S1);border:1px solid var(--S2);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;padding:2px;gap:2px}
+.cal-day.empty{background:transparent;border-color:transparent;cursor:default}
+.cal-day.today .dnum{background:var(--Y);color:var(--BG);border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-weight:900}
+.cal-day.sel{border-color:var(--Y);background:var(--YLL)}
+.dnum{font-size:12px;color:var(--Y);font-weight:600;line-height:1}
+.ddots{display:flex;gap:2px}
+.dot{width:5px;height:5px;border-radius:50%}
+.dot-m{background:#ef4444}
+.dot-t{background:#22c55e}
+.cal-leg{display:flex;gap:14px;margin-top:10px;padding:9px 12px;background:var(--S1);border-radius:8px;border:1px solid var(--S3)}
+.leg-i{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--G)}
+
+/* PLAYERS */
+.pl-item{display:flex;align-items:center;gap:10px;padding:11px 14px;background:var(--S1);border:1px solid var(--S3);border-radius:9px;margin-bottom:6px}
+.av{width:38px;height:38px;border-radius:50%;background:var(--YLL);border:2px solid var(--Y);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--Y);flex-shrink:0}
+.av-admin{border-color:#7c3aed;background:#1e1030;color:#a78bfa}
+.av-coach{border-color:var(--Y)}
+.av-parent{border-color:#2563eb;background:#0a1520;color:#60a5fa}
+.pl-name{font-size:14px;font-weight:700;color:var(--Y)}
+.pl-role{font-size:12px;color:var(--G);margin-top:1px}
+
+/* MODAL */
+.mo-overlay{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+.mo-box{background:var(--S1);border:1px solid var(--Y);border-radius:14px;width:100%;max-width:520px;padding:20px;max-height:85vh;overflow-y:auto}
+.mo-handle{width:44px;height:4px;background:var(--S4);border-radius:2px;margin:0 auto 16px}
+.mo-title{font-size:16px;font-weight:800;color:var(--Y);margin-bottom:14px}
+.mo-foot{display:flex;gap:8px;margin-top:16px}
+.mo-foot button{flex:1;padding:13px;border-radius:9px;font-size:14px;font-weight:800}
+
+/* PRESENCE */
+.presence-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--S3)}
+.presence-name{flex:1;font-size:14px;color:var(--Y)}
+.presence-btns{display:flex;gap:6px}
+.pb{padding:5px 12px;border-radius:6px;font-size:12px;font-weight:700;border:1.5px solid var(--S4);color:var(--G);background:none}
+.pb.present{border-color:var(--GR);color:var(--GR);background:#0a1a0a}
+.pb.absent{border-color:var(--RD);color:var(--RD);background:#1a0a0a}
+
+/* ADMIN PANEL */
+.admin-tabs{display:flex;gap:6px;background:var(--S1);border:1px solid var(--S3);border-radius:10px;padding:5px;margin-bottom:14px}
+.admin-tab{flex:1;padding:8px;border-radius:7px;background:none;color:var(--G);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px}
+.admin-tab i{font-size:15px}
+.admin-tab.active{background:var(--Y);color:var(--BG)}
+
+/* CAT BADGE */
+.cat-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:12px;display:inline-block}
+
+/* TOAST */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--Y);color:var(--BG);padding:10px 20px;border-radius:8px;font-size:13px;font-weight:700;z-index:300;opacity:0;transition:all .25s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* EMPTY */
+.empty{text-align:center;padding:36px 20px;color:var(--G)}
+.empty i{font-size:36px;display:block;margin-bottom:10px;color:var(--S4)}
+
+/* MINOR BADGE */
+.minor{font-size:10px;font-weight:700;color:var(--Y);background:var(--YLL);border:1px solid var(--YD);border-radius:10px;padding:1px 7px;margin-left:5px}
+
+/* PROFILE */
+.prof-avatar{width:72px;height:72px;border-radius:50%;background:var(--YLL);border:3px solid var(--Y);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:var(--Y);margin:0 auto 12px}
+</style>
+</head>
+<body>
+
+<!-- ═══ AUTH ═══════════════════════════════════════════ -->
+<div id="authWrap" class="auth-wrap">
+  <div class="auth-logo">SMHB</div>
+  <div class="auth-sub">Handball Club</div>
+  <div class="auth-box">
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-login" onclick="authTab('login')">Connexion</button>
+      <button class="auth-tab" id="tab-signup" onclick="authTab('signup')">Inscription</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div id="loginForm">
+      <div class="fg"><label class="fl">Email</label><input class="fi" type="email" id="lEmail" placeholder="coach@smhb.fr"></div>
+      <div class="fg"><label class="fl">Mot de passe</label><input class="fi" type="password" id="lPass" placeholder="••••••••"></div>
+      <button class="btn-y" onclick="doLogin()">Se connecter</button>
+      <p style="text-align:center;margin-top:12px;font-size:12px;color:var(--G)"><a href="#" onclick="doForgot()" style="color:var(--Y)">Mot de passe oublié ?</a></p>
+    </div>
+
+    <!-- SIGNUP -->
+    <div id="signupForm" style="display:none">
+      <div id="step1">
+        <div style="background:#1a1200;border:1px solid var(--Y);border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:var(--Y)"><strong>Etape 1/3</strong> — Informations personnelles</div>
+        <div class="fg"><label class="fl">Nom complet *</label><input class="fi" id="sName" placeholder="Marie Dupont"></div>
+        <div class="fg"><label class="fl">Email *</label><input class="fi" type="email" id="sEmail" placeholder="marie@email.com"></div>
+        <div class="fg"><label class="fl">Mot de passe *</label><input class="fi" type="password" id="sPass" placeholder="Min. 8 caracteres"></div>
+        <button onclick="goStep(2)" class="btn-y">Suivant</button>
+      </div>
+      <div id="step2" style="display:none">
+        <div style="background:#1a1200;border:1px solid var(--Y);border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:var(--Y)"><strong>Etape 2/3</strong> — Mon role dans le club</div>
+        <div class="fg"><label class="fl">Je suis *</label>
+          <select class="fi" id="sRole" onchange="onRoleChange()">
+            <option value="">-- Choisissez --</option>
+            <option value="player_major">Joueur / Joueuse majeur(e) (+18 ans)</option>
+            <option value="player_minor">Joueur / Joueuse mineur(e) (-18 ans)</option>
+            <option value="parent">Parent d un joueur mineur</option>
+            <option value="coach">Coach</option>
+          </select>
+        </div>
+        <div class="fg" id="catField" style="display:none">
+          <label class="fl">Categorie *</label>
+          <select class="fi" id="sCat"><option value="">Chargement...</option></select>
+        </div>
+        <div class="fg" id="birthField" style="display:none">
+          <label class="fl">Date de naissance *</label>
+          <input class="fi" type="date" id="sBirth">
+        </div>
+        <div id="parentInfo" style="display:none;padding:10px;background:var(--S2);border-radius:8px;border-left:3px solid #2563eb;font-size:13px;color:#60a5fa;margin-bottom:10px">
+          Vous pourrez ajouter vos enfants depuis votre profil apres connexion.
+        </div>
+        <div style="display:flex;gap:8px">
+          <button onclick="goStep(1)" class="btn-yout" style="flex:1">Retour</button>
+          <button onclick="goStep(3)" class="btn-y" style="flex:2">Suivant</button>
+        </div>
+      </div>
+      <div id="step3" style="display:none">
+        <div style="background:#1a1200;border:1px solid var(--Y);border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:var(--Y)"><strong>Etape 3/3</strong> — Reglement</div>
+        <div style="background:var(--S2);border-radius:8px;padding:12px;margin-bottom:14px;font-size:12px;color:var(--GL);line-height:1.6;max-height:140px;overflow-y:auto;border:1px solid var(--S3)">
+          <strong style="color:var(--Y)">Reglement interieur SMHB</strong><br><br>
+          En rejoignant le club SMHB, je m engage a respecter les regles du fair-play, prevenir le coach en cas d absence, payer ma cotisation dans les delais impartis, respecter les installations et le materiel du club, respecter les decisions des arbitres et du staff.<br><br>
+          <strong style="color:var(--Y)">Protection des donnees (RGPD)</strong><br><br>
+          Vos donnees personnelles sont utilisees uniquement pour la gestion du club SMHB et ne sont pas communiquees a des tiers. Vous pouvez demander la suppression de votre compte a tout moment.
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">
+          <label style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--GL);cursor:pointer">
+            <input type="checkbox" id="chk1" style="width:18px;height:18px;accent-color:var(--Y)">
+            J ai lu et accepte le reglement interieur du club
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--GL);cursor:pointer">
+            <input type="checkbox" id="chk2" style="width:18px;height:18px;accent-color:var(--Y)">
+            J accepte la politique de protection des donnees RGPD
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--GL);cursor:pointer">
+            <input type="checkbox" id="chk3" style="width:18px;height:18px;accent-color:var(--Y)">
+            Je certifie que mes informations sont exactes
+          </label>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button onclick="goStep(2)" class="btn-yout" style="flex:1">Retour</button>
+          <button onclick="doSignup()" class="btn-y" style="flex:2">Creer mon compte</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="auth-err" id="authErr"></div>
+    <div class="auth-ok" id="authOk"></div>
+  </div>
+</div>
+
+<!-- ═══ APP ════════════════════════════════════════════ -->
+<div class="app" id="app">
+
+  <div class="topbar">
+    <div class="tl">
+      <span class="logo">SMHB</span>
+      <select class="cat-sel" id="catFilter" onchange="onCatFilter()">
+        <option value="">Toutes catégories</option>
+      </select>
+    </div>
+    <div class="tr">
+      <span class="role-tag" id="roleTag"></span>
+      <button class="notif-btn" onclick="go('notifs')"><i class="ti ti-bell"></i><span class="nbadge" id="nbadge"></span></button>
+      <button class="logout-btn" onclick="doLogout()"><i class="ti ti-logout" style="font-size:14px"></i></button>
+    </div>
+  </div>
+
+  <div class="nav" id="mainNav"></div>
+
+  <!-- CALENDRIER -->
+  <div class="view active" id="view-calendar">
+    <div class="cal-nav">
+      <button class="cal-arrow" onclick="prevM()"><i class="ti ti-chevron-left"></i></button>
+      <div class="cal-month" id="calMonth"></div>
+      <button class="cal-arrow" onclick="nextM()"><i class="ti ti-chevron-right"></i></button>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+    <div class="cal-leg">
+      <div class="leg-i"><div class="dot dot-m"></div>Match</div>
+      <div class="leg-i"><div class="dot dot-t"></div>Entraînement</div>
+    </div>
+    <div id="dayDetail" style="margin-top:14px"></div>
+  </div>
+
+  <!-- SÉANCES -->
+  <div class="view" id="view-events">
+    <div class="stats">
+      <div class="stat"><div class="stat-n" id="stM">0</div><div class="stat-l">Matchs</div></div>
+      <div class="stat"><div class="stat-n" id="stT">0</div><div class="stat-l">Entraîn.</div></div>
+      <div class="stat"><div class="stat-n" id="stR">0</div><div class="stat-l">Mes inscrip.</div></div>
+    </div>
+    <div id="eventsList"></div>
+  </div>
+
+  <!-- ÉQUIPE -->
+  <div class="view" id="view-players">
+    <div id="catTabs" style="display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px;scrollbar-width:none"></div>
+    <div id="playerList"></div>
+  </div>
+
+  <!-- ADMIN / COACH -->
+  <div class="view" id="view-admin">
+    <div class="admin-tabs">
+      <button class="admin-tab active" id="adm-tab-add" onclick="admTab('add')"><i class="ti ti-plus"></i>Nouvelle séance</button>
+      <button class="admin-tab" id="adm-tab-list" onclick="admTab('list')"><i class="ti ti-list"></i>Séances</button>
+      <button class="admin-tab" id="adm-tab-members" onclick="admTab('members')" id="adm-tab-members" style="display:none"><i class="ti ti-users"></i>Membres</button>
+    </div>
+
+    <!-- Formulaire ajout -->
+    <div id="adm-add">
+      <div class="card">
+        <div class="fg"><label class="fl">Type</label>
+          <select class="fi" id="nType" onchange="toggleMatchFields()">
+            <option value="match">Match</option>
+            <option value="training">Entraînement</option>
+          </select>
+        </div>
+        <div class="fg"><label class="fl">Titre / Adversaire <span style="color:var(--G);font-weight:400">(optionnel)</span></label><input class="fi" id="nTitle" placeholder="ex : Match vs Libourne HB — laissez vide pour titre automatique"></div>
+        <div class="frow">
+          <div class="fg"><label class="fl">Date</label><input class="fi" type="date" id="nDate"></div>
+          <div class="fg"><label class="fl">Heure</label><input class="fi" type="time" id="nTime"></div>
+        </div>
+        <div class="fg"><label class="fl">Catégorie</label><select class="fi" id="nCat"><option value="">Toutes</option></select></div>
+        <div id="matchFields">
+          <div class="fg"><label class="fl">Lieu match</label><input class="fi" id="nLoc" placeholder="Gymnase Jean-Moulin"></div>
+          <div class="fg"><label class="fl">Domicile / Extérieur</label>
+            <select class="fi" id="nHA"><option value="home">Domicile</option><option value="away">Extérieur</option></select>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="fg"><label class="fl">Heure de fin</label><input class="fi" type="time" id="nTimeEnd" placeholder="optionnel"></div>
+          <div class="fg"><label class="fl">Lieu</label><input class="fi" id="nLoc2" placeholder="Gymnase Ariane"></div>
+        </div>
+        <div class="fg" id="recurField">
+          <label class="fl">Récurrence <span style="color:var(--G);font-weight:400">(optionnel)</span></label>
+          <select class="fi" id="nRecur" onchange="toggleRecurEnd()">
+            <option value="">Séance unique</option>
+            <option value="weekly">Toutes les semaines</option>
+            <option value="biweekly">Toutes les 2 semaines</option>
+          </select>
+        </div>
+        <div class="fg" id="recurEndField" style="display:none">
+          <label class="fl">Répéter jusqu'au</label>
+          <input class="fi" type="date" id="nRecurEnd">
+        </div>
+        <div class="fg"><label class="fl">Notes</label><input class="fi" id="nNotes" placeholder="Informations complémentaires..."></div>
+        <button class="btn-y" onclick="addEvent()"><i class="ti ti-plus"></i> Ajouter au calendrier</button>
+      </div>
+    </div>
+
+    <!-- Liste séances -->
+    <div id="adm-list" style="display:none"><div id="adminEventList"></div></div>
+
+    <!-- Gestion membres (admin seulement) -->
+    <div id="adm-members" style="display:none"><div id="adminMemberList"></div></div>
+  </div>
+
+  <!-- PROFIL -->
+  <div class="view" id="view-profile">
+    <div id="profileContent"></div>
+  </div>
+
+  <!-- NOTIFICATIONS -->
+  <div class="view" id="view-notifs">
+    <div class="sl"><i class="ti ti-bell"></i>Notifications<div class="sl-line"></div></div>
+    <div id="notifList"></div>
+  </div>
+
+</div>
+
+<!-- MODAL PRÉSENCE / INSCRIPTION -->
+<div class="mo-overlay" id="modal" onclick="bgClose(event)">
+  <div class="mo-box">
+    <div class="mo-handle"></div>
+    <div class="mo-title" id="moTitle"></div>
+    <div id="moBody"></div>
+    <div class="mo-foot">
+      <button class="btn-yout" onclick="closeModal()">Fermer</button>
+      <button class="btn-y btn-sm" id="moCfm" onclick="confirmModal()" style="flex:2;padding:13px;border-radius:9px;font-size:14px;font-weight:800">Confirmer</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = 'https://ggvlwpsiaifpyskdzdpy.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdndmx3cHNpYWlmcHlza2R6ZHB5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1MTQzMTMsImV4cCI6MjA5NzA5MDMxM30.Y8vsQWZGHU4QO74_2D8riy-J0pVWm3D6CyJTtcv07kc';
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ═══ STATE ═══════════════════════════════════════════
+let me = null; // profil courant
+let allEvents = [], allCategories = [], myRegs = [];
+let selEventId = null, selCatFilter = '', selPlayerCat = '';
+let calM = new Date().getMonth(), calY = new Date().getFullYear();
+const today = new Date().toISOString().split('T')[0];
+const MONTHS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+const FMT = ds => new Date(ds+'T00:00:00').toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+const CAT_COLORS = {
+  'U11F':'#FF69B4','U11G':'#4169E1','U13F':'#FF1493','U13G':'#1E90FF',
+  'U15F':'#FF6347','U15G':'#32CD32','U17F':'#FF4500','U17G':'#00CED1',
+  'SENIOR':'#F5C800','LOISIR':'#888888'
+};
+
+// ═══ INIT ═════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', async () => {
+  const { data: { session } } = await db.auth.getSession();
+  if (session) await boot(session.user);
+  db.auth.onAuthStateChange(async (_e, session) => {
+    if (session) await boot(session.user);
+    else showAuth();
+  });
+  await loadCatsForSignup();
+});
+
+async function boot(user) {
+  const { data: p } = await db.from('profiles').select('*, categories(name,color)').eq('id', user.id).single();
+  if (!p) { showAuth(); return; }
+  me = p;
+  // Vérifier si le compte est validé (sauf admin)
+  if (!p.validated && p.role !== 'admin') {
+    document.getElementById('authWrap').style.display = 'flex';
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('signupForm').style.display = 'none';
+    document.getElementById('authOk').style.display = 'none';
+    document.getElementById('authErr').textContent = 'Votre compte est en attente de validation par un administrateur. Vous serez notifié par email dès que votre accès sera activé.';
+    document.getElementById('authErr').style.display = 'block';
+    document.getElementById('authErr').style.color = '#f97316';
+    await db.auth.signOut();
+    return;
+  }
+  document.getElementById('authWrap').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  setupNav();
+  setupRoleTag();
+  await loadCategories();
+  await loadEvents();
+  await loadNotifs();
+  subscribeRT();
+  drawCalendar();
+  drawEvents();
+}
+
+function showAuth() {
+  me = null;
+  document.getElementById('authWrap').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+}
+
+// ═══ RÔLES ════════════════════════════════════════════
+function isAdmin() { return me?.role === 'admin'; }
+function isCoach() { return me?.role === 'coach' || isAdmin(); }
+function isParent() { return me?.role === 'parent'; }
+function isMinor() { return me?.role === 'player_minor'; }
+function isMajor() { return me?.role === 'player_major'; }
+function canManage() { return isCoach(); } // admin + coach peuvent gérer
+
+function roleLabel(r) {
+  const m = {admin:'Administrateur',coach:'Coach',player_major:'Joueur',player_minor:'Joueur (mineur)',parent:'Parent'};
+  return m[r] || r;
+}
+
+function setupRoleTag() {
+  const t = document.getElementById('roleTag');
+  t.textContent = roleLabel(me.role).toUpperCase();
+  t.className = 'role-tag ' + (isAdmin()?'rt-admin':isCoach()?'rt-coach':isParent()?'rt-parent':'rt-player');
+}
+
+function setupNav() {
+  const nav = document.getElementById('mainNav');
+  const tabs = [
+    {id:'calendar',icon:'ti-calendar',label:'Calendrier'},
+    {id:'events',icon:'ti-list',label:'Séances'},
+    {id:'players',icon:'ti-users',label:'Équipe'},
+  ];
+  if (canManage()) tabs.push({id:'admin',icon:'ti-settings',label:'Admin'});
+  tabs.push({id:'profile',icon:'ti-user',label:'Profil'});
+  nav.style.gridTemplateColumns = `repeat(${tabs.length}, 1fr)`;
+  nav.innerHTML = tabs.map((t,i) =>
+    `<button class="nav-btn${i===0?' active':''}" id="nav-${t.id}" onclick="go('${t.id}')">
+      <i class="ti ${t.icon}"></i>${t.label}
+    </button>`
+  ).join('');
+
+  // Onglet membres visible uniquement pour admin
+  if (isAdmin()) {
+    const mt = document.getElementById('adm-tab-members');
+    if (mt) mt.style.display = 'flex';
+  }
+}
+
+// ═══ AUTH ═════════════════════════════════════════════
+window.authTab = (tab) => {
+  document.getElementById('loginForm').style.display = tab==='login'?'block':'none';
+  document.getElementById('signupForm').style.display = tab==='signup'?'block':'none';
+  document.getElementById('tab-login').className = 'auth-tab'+(tab==='login'?' active':'');
+  document.getElementById('tab-signup').className = 'auth-tab'+(tab==='signup'?' active':'');
+  document.getElementById('authErr').style.display = 'none';
+  document.getElementById('authOk').style.display = 'none';
+};
+
+window.goStep = (n) => {
+  if (n===2) {
+    const name = document.getElementById('sName').value.trim();
+    const email = document.getElementById('sEmail').value.trim();
+    const pass = document.getElementById('sPass').value;
+    if (!name||!email||!pass) { showErr('Remplissez tous les champs'); return; }
+    if (pass.length<8) { showErr('Mot de passe trop court (8 caracteres min)'); return; }
+    document.getElementById('authErr').style.display='none';
+  }
+  if (n===3) {
+    const role = document.getElementById('sRole').value;
+    if (!role) { showErr('Choisissez votre profil'); return; }
+    if ((role==='player_major'||role==='player_minor'||role==='coach') && !document.getElementById('sCat').value) {
+      showErr('Choisissez votre categorie'); return;
+    }
+    document.getElementById('authErr').style.display='none';
+  }
+  [1,2,3].forEach(i => {
+    document.getElementById('step'+i).style.display = i===n ? 'block' : 'none';
+  });
+};
+
+window.onRoleChange = () => {
+  const r = document.getElementById('sRole').value;
+  document.getElementById('catField').style.display = (r==='parent') ? 'none' : 'block';
+  document.getElementById('birthField').style.display = (r==='player_minor') ? 'block' : 'none';
+};
+
+async function loadCatsForSignup() {
+  const { data } = await db.from('categories').select('*').order('name');
+  if (!data) return;
+  const sel = document.getElementById('sCat');
+  sel.innerHTML = data.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+}
+
+window.doLogin = async () => {
+  const email = document.getElementById('lEmail').value.trim();
+  const pass = document.getElementById('lPass').value;
+  if (!email || !pass) { showErr('Remplissez tous les champs'); return; }
+  const { error } = await db.auth.signInWithPassword({ email, password: pass });
+  if (error) showErr(error.message);
+};
+
+window.doSignup = async () => {
+  const chk1 = document.getElementById('chk1')?.checked;
+  const chk2 = document.getElementById('chk2')?.checked;
+  const chk3 = document.getElementById('chk3')?.checked;
+  if (!chk1||!chk2||!chk3) { showErr('Vous devez cocher toutes les cases'); return; }
+  const name = document.getElementById('sName').value.trim();
+  const email = document.getElementById('sEmail').value.trim();
+  const pass = document.getElementById('sPass').value;
+  const role = document.getElementById('sRole').value;
+  const catId = document.getElementById('sCat').value || null;
+  const birth = document.getElementById('sBirth').value || null;
+  if (!name||!email||!pass) { showErr('Remplissez tous les champs'); return; }
+  if (pass.length < 8) { showErr('Mot de passe trop court (8 caractères min)'); return; }
+  const { error } = await db.auth.signUp({
+    email, password: pass,
+    options: { data: { full_name: name, role, category_id: catId, birth_date: birth, validated: false } }
+  });
+  if (error) showErr(error.message);
+  else showOk('Compte créé ! Un administrateur va valider votre compte sous peu.');
+};
+
+window.doLogout = async () => { await db.auth.signOut(); };
+window.doForgot = async () => {
+  const email = prompt('Votre adresse email :');
+  if (email) { await db.auth.resetPasswordForEmail(email); toast('Email envoyé !'); }
+};
+
+function showErr(msg) {
+  const e = document.getElementById('authErr');
+  e.textContent = msg; e.style.display = 'block';
+  document.getElementById('authOk').style.display = 'none';
+}
+function showOk(msg) {
+  const e = document.getElementById('authOk');
+  e.textContent = msg; e.style.display = 'block';
+  document.getElementById('authErr').style.display = 'none';
+}
+
+// ═══ DONNÉES ══════════════════════════════════════════
+async function loadCategories() {
+  const { data } = await db.from('categories').select('*').order('name');
+  allCategories = data || [];
+  // Filtre topbar
+  const cf = document.getElementById('catFilter');
+  cf.innerHTML = '<option value="">Toutes catégories</option>' +
+    allCategories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+  // Sélecteur admin
+  const nc = document.getElementById('nCat');
+  if (nc) nc.innerHTML = '<option value="">Toutes</option>' +
+    allCategories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+  // Onglets équipe
+  drawCatTabs();
+}
+
+async function loadEvents() {
+  let q = db.from('events').select('*, categories(name,color), registrations(id, player_id)').order('date').order('time');
+  if (selCatFilter) q = q.eq('category_id', selCatFilter);
+  // Coach voit seulement sa catégorie si pas admin
+  if (isCoach() && !isAdmin() && me.category_id) q = q.eq('category_id', me.category_id);
+  const { data } = await q;
+  allEvents = data || [];
+  const { data: regs } = await db.from('registrations').select('event_id').eq('player_id', me.id);
+  myRegs = regs?.map(r => r.event_id) || [];
+}
+
+async function loadNotifs() {
+  const { data } = await db.from('notifications').select('*').eq('user_id', me.id).eq('read', false);
+  const count = (data||[]).length;
+  const badge = document.getElementById('nbadge');
+  badge.textContent = count > 9 ? '9+' : count;
+  badge.style.display = count > 0 ? 'flex' : 'none';
+  const list = document.getElementById('notifList');
+  if (!data?.length) { list.innerHTML = '<div class="empty"><i class="ti ti-bell-off"></i><p>Aucune notification</p></div>'; return; }
+  list.innerHTML = data.map(n => `
+    <div class="card" onclick="markRead('${n.id}',this)" style="cursor:pointer">
+      <div class="card-title" style="font-size:14px">${n.title}</div>
+      <div class="card-meta">${n.body}</div>
+      <div style="font-size:11px;color:var(--S4);margin-top:6px">${new Date(n.sent_at).toLocaleDateString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
+    </div>`).join('');
+}
+
+window.markRead = async (id, el) => {
+  await db.from('notifications').update({read:true}).eq('id',id);
+  el.style.opacity='.4';
+  await loadNotifs();
+};
+
+function subscribeRT() {
+  db.channel('rt').on('postgres_changes',{event:'*',schema:'public',table:'events'}, async () => {
+    await loadEvents(); drawCalendar(); drawEvents();
+  }).subscribe();
+}
+
+// ═══ NAVIGATION ═══════════════════════════════════════
+window.go = (v) => {
+  document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
+  document.getElementById('view-'+v)?.classList.add('active');
+  document.getElementById('nav-'+v)?.classList.add('active');
+  if(v==='events') drawEvents();
+  if(v==='players') drawPlayers();
+  if(v==='admin') drawAdmin();
+  if(v==='profile') drawProfile();
+  if(v==='notifs') loadNotifs();
+  if(v==='calendar') drawCalendar();
+};
+
+window.onCatFilter = async () => {
+  selCatFilter = document.getElementById('catFilter').value;
+  await loadEvents(); drawCalendar(); drawEvents();
+};
+
+// ═══ CALENDRIER ═══════════════════════════════════════
+function drawCalendar() {
+  document.getElementById('calMonth').textContent = MONTHS[calM]+' '+calY;
+  const g = document.getElementById('calGrid');
+  g.innerHTML = ['Lu','Ma','Me','Je','Ve','Sa','Di'].map(d=>`<div class="cal-dn">${d}</div>`).join('');
+  let sd = new Date(calY,calM,1).getDay()-1; if(sd<0) sd=6;
+  const dim = new Date(calY,calM+1,0).getDate();
+  for(let i=0;i<sd;i++) g.innerHTML+=`<div class="cal-day empty"></div>`;
+  for(let d=1;d<=dim;d++){
+    const ds=`${calY}-${String(calM+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const de=allEvents.filter(e=>e.date===ds);
+    const isT=ds===today,hm=de.some(e=>e.type==='match'),ht=de.some(e=>e.type==='training');
+    const numStyle=isT?'background:var(--Y);color:var(--BG);border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px':'font-size:12px;color:var(--Y);font-weight:600';
+    g.innerHTML+=`<div class="cal-day${de.length?' has-ev':''}" onclick="dayClick('${ds}')">
+      <div style="${numStyle}">${d}</div>
+      ${(hm||ht)?`<div class="ddots">${hm?'<div class="dot dot-m"></div>':''}${ht?'<div class="dot dot-t"></div>':''}</div>`:''}
+    </div>`;
+  }
+  document.getElementById('dayDetail').innerHTML='';
+}
+
+window.dayClick = ds => {
+  const de = allEvents.filter(e=>e.date===ds);
+  const det = document.getElementById('dayDetail');
+  if(!de.length){det.innerHTML=`<div style="text-align:center;padding:16px;font-size:13px;color:var(--G)">Aucune séance ce jour</div>`;return;}
+  det.innerHTML=`<div class="sl"><i class="ti ti-calendar-day"></i>${FMT(ds)}<div class="sl-line"></div></div>`+de.map(eventCard).join('');
+};
+window.prevM = () => {calM--;if(calM<0){calM=11;calY--;} drawCalendar();};
+window.nextM = () => {calM++;if(calM>11){calM=0;calY++;} drawCalendar();};
+
+// ═══ CARTE ÉVÉNEMENT ══════════════════════════════════
+function catBadge(e) {
+  if (!e.categories) return '';
+  const c = e.categories.color || CAT_COLORS[e.categories.name] || '#888';
+  return `<span class="cat-badge" style="background:${c}22;color:${c};border:1px solid ${c}66">${e.categories.name}</span>`;
+}
+
+function eventCard(e) {
+  const isM = e.type==='match';
+  const joined = myRegs.includes(e.id);
+  const regCount = Array.isArray(e.registrations) ? e.registrations.length : 0;
+  const haTag = e.home_away==='home'?`<span class="tag t-home">Domicile</span>`:e.home_away==='away'?`<span class="tag t-away">Extérieur</span>`:'';
+
+  let actionBtn = '';
+  if (canManage()) {
+    // Coach/admin : voir inscrits ET inscrire
+    actionBtn = `<div style="display:flex;gap:6px">
+      <button class="btn-yout btn-sm" onclick="openPresence('${e.id}')"><i class="ti ti-users"></i> ${regCount}</button>
+      <button class="btn-yout btn-sm" onclick="toggleReg('${e.id}')"><i class="ti ti-plus"></i> Inscrire</button>
+    </div>`;
+  } else if (isMajor() || isParent()) {
+    // Joueur majeur ou parent : s'inscrire
+    actionBtn = `<button class="${joined?'btn-ok':'btn-yout'} btn-sm" onclick="toggleReg('${e.id}')">${joined?'<i class=\'ti ti-check\'></i> Présent':'S\'inscrire'}</button>`;
+  } else if (isMinor()) {
+    // Joueur mineur : lecture seule, parent gère
+    actionBtn = `<span style="font-size:11px;color:var(--G)">Géré par votre parent</span>`;
+  }
+
+  return `<div class="card ${isM?'match':'training'}">
+    <div class="tags">
+      <span class="tag ${isM?'t-match':'t-train'}">${isM?'MATCH':'ENTRAÎN.'}</span>
+      ${haTag}${catBadge(e)}
+    </div>
+    <div class="card-title">${e.title}</div>
+    <div class="card-meta"><i class="ti ti-clock"></i>${FMT(e.date)} · ${e.time}${e.time_end?' → '+e.time_end:''}</div>
+    ${e.location?`<div class="card-meta"><i class="ti ti-map-pin"></i>${e.location}</div>`:''}
+    ${e.notes?`<div class="card-meta"><i class="ti ti-note"></i>${e.notes}</div>`:''}
+    <div class="card-foot">
+      <div class="pax"><i class="ti ti-users"></i>${regCount} inscrits</div>
+      ${actionBtn}
+    </div>
+  </div>`;
+}
+
+// ═══ VUE SÉANCES ══════════════════════════════════════
+function drawEvents() {
+  const up = allEvents.filter(e=>e.date>=today);
+  document.getElementById('stM').textContent = allEvents.filter(e=>e.type==='match').length;
+  document.getElementById('stT').textContent = allEvents.filter(e=>e.type==='training').length;
+  document.getElementById('stR').textContent = myRegs.length;
+  const sh = (icon,txt) => `<div class="sl"><i class="ti ${icon}"></i>${txt}<div class="sl-line"></div></div>`;
+  const ms = up.filter(e=>e.type==='match'), ts = up.filter(e=>e.type==='training');
+  document.getElementById('eventsList').innerHTML =
+    sh('ti-trophy','Matchs à venir') + (ms.length ? ms.map(eventCard).join('') : '<div class="empty"><i class="ti ti-calendar-off"></i><p>Aucun match à venir</p></div>') +
+    sh('ti-run','Entraînements à venir') + (ts.length ? ts.map(eventCard).join('') : '<div class="empty"><i class="ti ti-run"></i><p>Aucun entraînement à venir</p></div>');
+}
+
+// ═══ PRÉSENCE ═════════════════════════════════════════
+window.openPresence = async (eventId) => {
+  selEventId = eventId;
+  const e = allEvents.find(x=>x.id===eventId);
+  // Récupérer inscrits avec nom du profil ET nom de l'enfant si child_id
+  // Récupérer toutes les inscriptions de cet événement
+  const { data: regs } = await db.from('registrations').select('*').eq('event_id', eventId);
+  
+  // Récupérer tous les profils et enfants en parallèle
+  const playerIds = [...new Set((regs||[]).map(r => r.player_id).filter(Boolean))];
+  const childIds = [...new Set((regs||[]).map(r => r.child_id).filter(Boolean))];
+  
+  const [profilesRes, childrenRes] = await Promise.all([
+    playerIds.length ? db.from('profiles').select('id,full_name,role').in('id', playerIds) : {data:[]},
+    childIds.length ? db.from('children').select('id,full_name').in('id', childIds) : {data:[]}
+  ]);
+  
+  const profilesMap = Object.fromEntries((profilesRes.data||[]).map(p => [p.id, p]));
+  const childrenMap = Object.fromEntries((childrenRes.data||[]).map(ch => [ch.id, ch]));
+  
+  document.getElementById('moTitle').textContent = '👥 ' + e.title;
+  document.getElementById('moCfm').style.display = 'none';
+  const regList = (regs||[]).map(r => {
+    const child = r.child_id ? childrenMap[r.child_id] : null;
+    const profile = profilesMap[r.player_id];
+    const name = child ? child.full_name + ' <span style="font-size:10px;background:#1e1900;color:#F5C800;border:1px solid #C9A200;border-radius:10px;padding:1px 6px;margin-left:4px">MINEUR</span>' : (profile?.full_name || '—');
+    const roleLbl = child ? 'Inscrit par parent' : roleLabel(profile?.role||'');
+    return `<div class="presence-row">
+      <div style="flex:1">
+        <div style="font-size:14px;font-weight:600;color:var(--Y)">${name}</div>
+        <div style="font-size:11px;color:var(--G)">${roleLbl}</div>
+      </div>
+      <span class="tag t-present"><i class="ti ti-check"></i> Présent</span>
+    </div>`;
+  }).join('');
+  document.getElementById('moBody').innerHTML = `
+    <div class="card-meta" style="margin-bottom:6px"><i class="ti ti-clock"></i>${FMT(e.date)} à ${e.time}</div>
+    <div class="card-meta" style="margin-bottom:14px"><i class="ti ti-map-pin"></i>${e.location||'Gymnase du club'}</div>
+    <div style="font-weight:800;font-size:14px;color:var(--Y);margin-bottom:12px;padding:8px 12px;background:var(--S2);border-radius:8px;display:flex;align-items:center;gap:8px">
+      <i class="ti ti-users"></i>${regs?.length||0} inscrit${(regs?.length||0)>1?'s':''}
+    </div>
+    ${regList || '<div class="empty"><i class="ti ti-users-off"></i><p>Aucun inscrit pour l\'instant</p></div>'}`;
+  document.getElementById('modal').style.display = 'flex';
+};
+
+// ═══ INSCRIPTION ══════════════════════════════════════
+window.toggleReg = async (eventId) => {
+  const joined = myRegs.includes(eventId);
+  if (joined) {
+    await db.from('registrations').delete().eq('event_id',eventId).eq('player_id',me.id);
+    myRegs = myRegs.filter(id=>id!==eventId);
+    toast('Désinscription effectuée');
+    await loadEvents(); drawEvents();
+  } else {
+    // Admin, coach et parent : ouvrir modal pour choisir qui inscrire
+    openRegModal(eventId);
+  }
+};
+
+async function openRegModal(eventId) {
+  selEventId = eventId;
+  const e = allEvents.find(x=>x.id===eventId);
+  const { data: children } = await db.from('parent_children').select('child_id, profiles!parent_children_child_id_fkey(id,full_name)').eq('parent_id',me.id);
+  document.getElementById('moTitle').textContent = 'Inscrire mon enfant';
+  document.getElementById('moCfm').style.display = 'block';
+  document.getElementById('moCfm').textContent = 'Confirmer';
+  document.getElementById('moBody').innerHTML = `
+    <div class="card-meta" style="margin-bottom:12px"><i class="ti ti-clock"></i>${FMT(e.date)} à ${e.time}</div>
+    ${children?.length
+      ? `<div class="fg"><label class="fl">Enfant à inscrire</label><select class="fi" id="childSel">${children.map(c=>`<option value="${c.profiles.id}">${c.profiles.full_name}</option>`).join('')}</select></div>`
+      : '<p style="color:var(--G);font-size:13px">Aucun enfant lié à votre compte. Contactez le coach.</p>'}`;
+  document.getElementById('modal').style.display = 'flex';
+}
+
+window.confirmModal = async () => {
+  const childSel = document.getElementById('childSel');
+  if (!childSel) { closeModal(); return; }
+  const childId = childSel.value;
+  await db.from('registrations').insert({event_id:selEventId, player_id:childId, registered_by:me.id});
+  toast('Enfant inscrit ✓');
+  closeModal(); await loadEvents(); drawEvents();
+};
+
+// ═══ VUE ÉQUIPE ═══════════════════════════════════════
+function drawCatTabs() {
+  const t = document.getElementById('catTabs');
+  t.innerHTML = `<button onclick="filterByCat('')" style="padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;border:1.5px solid var(--Y);background:var(--Y);color:var(--BG);cursor:pointer;white-space:nowrap;flex-shrink:0">Tous</button>` +
+    allCategories.map(c=>{const col=c.color||CAT_COLORS[c.name]||'#888'; return `<button onclick="filterByCat('${c.id}')" style="padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;border:1.5px solid ${col};color:${col};background:transparent;cursor:pointer;white-space:nowrap;flex-shrink:0">${c.name}</button>`;}).join('');
+}
+
+window.filterByCat = async (catId) => {
+  selPlayerCat = catId;
+  await drawPlayers(catId);
+};
+
+async function drawPlayers(catId='') {
+  // Récupérer les profils (joueurs avec compte)
+  let q = db.from('profiles').select('*, categories(name,color)').order('full_name');
+  if (catId) q = q.eq('category_id', catId);
+  if (isCoach() && !isAdmin() && me.category_id && !catId) q = q.eq('category_id', me.category_id);
+  const { data: players } = await q;
+
+  // Récupérer aussi les enfants (joueurs mineurs sans compte)
+  let qc = db.from('children').select('*, categories(name,color), profiles!children_parent_id_fkey(full_name)').order('full_name');
+  if (catId) qc = qc.eq('category_id', catId);
+  const { data: children } = await qc;
+
+  const list = document.getElementById('playerList');
+  const allMembers = [...(players||[]).map(p=>({...p,_type:'profile'})), ...(children||[]).map(ch=>({...ch,_type:'child'}))];
+  
+  if (!allMembers.length) { list.innerHTML = '<div class="empty"><i class="ti ti-users-off"></i><p>Aucun membre dans cette catégorie</p></div>'; return; }
+
+  list.innerHTML = allMembers.map(p => {
+    const isChild = p._type === 'child';
+    const ini = p.full_name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+    const col = p.categories?.color || CAT_COLORS[p.categories?.name] || '#888';
+    const catB = p.categories ? `<span class="cat-badge" style="background:${col}22;color:${col};border:1px solid ${col}66">${p.categories.name}</span>` : '';
+    const avClass = isChild ? '' : (p.role==='admin'?'av-admin':p.role==='coach'?'av-coach':p.role==='parent'?'av-parent':'');
+    const roleTxt = isChild ? 'Joueur mineur' : roleLabel(p.role);
+    const roleB = `<span class="tag" style="font-size:9px;padding:2px 6px;background:var(--S3);color:var(--G)">${roleTxt}</span>`;
+    const parentInfo = isChild && p.profiles ? `<span style="font-size:11px;color:var(--G)"> · Parent: ${p.profiles.full_name}</span>` : '';
+    let actions = '';
+    if (isAdmin() && !isChild) {
+      actions = `<select onchange="changeRole('${p.id}',this.value)" style="background:var(--S2);border:1px solid var(--S3);border-radius:6px;color:var(--Y);font-size:11px;padding:4px 6px">
+        <option value="player_major"${p.role==='player_major'?' selected':''}>Joueur majeur</option>
+        <option value="player_minor"${p.role==='player_minor'?' selected':''}>Joueur mineur</option>
+        <option value="parent"${p.role==='parent'?' selected':''}>Parent</option>
+        <option value="coach"${p.role==='coach'?' selected':''}>Coach</option>
+        <option value="admin"${p.role==='admin'?' selected':''}>Admin</option>
+      </select>`;
+    }
+    return `<div class="pl-item">
+      <div class="av ${avClass}" style="${isChild?`border-color:${col};background:${col}22;color:${col}`:''}">
+        ${ini}
+      </div>
+      <div style="flex:1">
+        <div class="pl-name">${p.full_name}${isChild ? '<span class="minor">MINEUR</span>' : ''}${parentInfo}</div>
+        <div style="display:flex;gap:5px;margin-top:3px;flex-wrap:wrap">${roleB}${catB}</div>
+      </div>
+      ${actions}
+    </div>`;
+  }).join('');
+}
+
+window.changeRole = async (userId, newRole) => {
+  await db.from('profiles').update({role:newRole}).eq('id',userId);
+  toast('Rôle mis à jour ✓');
+  await drawPlayers(selPlayerCat);
+};
+
+// ═══ VUE ADMIN ════════════════════════════════════════
+window.admTab = (tab) => {
+  ['add','list','members'].forEach(t => {
+    const btn = document.getElementById('adm-tab-'+t);
+    const pnl = document.getElementById('adm-'+t);
+    if (btn) btn.className = 'admin-tab'+(t===tab?' active':'');
+    if (pnl) pnl.style.display = t===tab?'block':'none';
+  });
+  if (tab==='list') drawAdminList();
+  if (tab==='members') drawAdminMembers();
+};
+
+window.toggleRecurEnd = () => {
+  const val = document.getElementById('nRecur').value;
+  document.getElementById('recurEndField').style.display = val ? 'block' : 'none';
+};
+
+window.toggleMatchFields = () => {
+  document.getElementById('matchFields').style.display = document.getElementById('nType').value==='match'?'block':'none';
+};
+
+window.addEvent = async () => {
+  const type = document.getElementById('nType').value;
+  const title = document.getElementById('nTitle').value.trim();
+  const date = document.getElementById('nDate').value;
+  const time = document.getElementById('nTime').value;
+  const timeEnd = document.getElementById('nTimeEnd')?.value || null;
+  const catId = document.getElementById('nCat').value || null;
+  const loc = type==='match' ? (document.getElementById('nLoc')?.value.trim()||null) : (document.getElementById('nLoc2')?.value.trim()||null);
+  const ha = type==='match' ? document.getElementById('nHA').value : null;
+  const notes = document.getElementById('nNotes').value.trim() || null;
+  const recur = document.getElementById('nRecur')?.value || '';
+  const recurEnd = document.getElementById('nRecurEnd')?.value || '';
+  if (!date||!time) { toast('Remplissez la date et heure'); return; }
+  const finalTitle = title || (type==='match' ? 'Match' : 'Entrainement');
+  const finalCat = (!isAdmin() && me.category_id) ? me.category_id : catId;
+  const dates = [date];
+  if (recur && recurEnd && recurEnd > date) {
+    let cur = new Date(date+'T12:00:00');
+    const endD = new Date(recurEnd+'T12:00:00');
+    const step = recur==='weekly' ? 7 : 14;
+    while (true) { cur.setDate(cur.getDate()+step); if (cur>endD) break; dates.push(cur.toISOString().split('T')[0]); }
+  }
+  const rows = dates.map(d => ({type, title:finalTitle, date:d, time, time_end:timeEnd, location:loc, home_away:ha, category_id:finalCat, notes, created_by:me.id}));
+  const { error } = await db.from('events').insert(rows);
+  if (error) { toast('Erreur: '+error.message); return; }
+  await notifyCategory(finalCat, {type:'new_event', title:'Nouvelle seance : '+finalTitle, body:(type==='match'?'Match':'Entrainement')+' le '+FMT(date)+' a '+time});
+  ['nTitle','nDate','nTime','nTimeEnd','nNotes','nLoc','nLoc2'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  const nr = document.getElementById('nRecur'); if(nr) nr.value='';
+  const ref = document.getElementById('recurEndField'); if(ref) ref.style.display='none';
+  toast(dates.length>1 ? dates.length+' seances ajoutees' : 'Seance ajoutee');
+  await loadEvents(); drawCalendar(); drawEvents();
+};
+
+async function drawAdminList() {
+  let q = db.from('events').select('*, categories(name,color), registrations(id)').order('date').order('time');
+  if (!isAdmin() && me.category_id) q = q.eq('category_id', me.category_id);
+  const { data: evs } = await q;
+  document.getElementById('adminEventList').innerHTML = (evs||[]).map(e => {
+    const isM = e.type==='match';
+    const col = e.categories?.color || CAT_COLORS[e.categories?.name] || '#888';
+    return `<div class="card ${isM?'match':'training'}" style="display:flex;align-items:center;gap:10px">
+      <div style="flex:1">
+        <div class="tags" style="margin-bottom:6px">
+          <span class="tag ${isM?'t-match':'t-train'}">${isM?'MATCH':'ENTRAÎN.'}</span>
+          ${e.categories?`<span class="cat-badge" style="background:${col}22;color:${col};border:1px solid ${col}66">${e.categories.name}</span>`:''}
+        </div>
+        <div class="card-title" style="font-size:14px">${e.title}</div>
+        <div class="card-meta"><i class="ti ti-clock"></i>${FMT(e.date)} · ${e.time} · ${e.registrations?.length||0} inscrits</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:5px">
+        <button class="btn-yout btn-sm" onclick="editEvent('${e.id}')"><i class="ti ti-edit"></i></button>
+        <button class="btn-del" onclick="delEvent('${e.id}')"><i class="ti ti-trash"></i></button>
+      </div>
+    </div>`;
+  }).join('') || '<div class="empty"><i class="ti ti-calendar-off"></i><p>Aucune séance</p></div>';
+}
+
+window.delEvent = async (id) => {
+  if (!confirm('Supprimer cette séance ?')) return;
+  await db.from('events').delete().eq('id', id);
+  toast('Séance supprimée'); await loadEvents(); drawAdminList(); drawCalendar();
+};
+
+async function drawAdminMembers() {
+  const { data } = await db.from('profiles').select('*, categories(name,color)').order('validated', {ascending:true}).order('full_name');
+  
+  const pending = (data||[]).filter(p => !p.validated && p.role !== 'admin');
+  const validated = (data||[]).filter(p => p.validated || p.role === 'admin');
+  
+  const memberCard = (p) => {
+    const ini = p.full_name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+    const col = p.categories?.color || CAT_COLORS[p.categories?.name] || '#888';
+    const isPending = !p.validated && p.role !== 'admin';
+    return `<div class="pl-item" style="${isPending?'border-color:#f97316;':''}">
+      <div class="av" style="${isPending?'border-color:#f97316;background:#1a0e00;color:#f97316':''}"> ${ini}</div>
+      <div style="flex:1">
+        <div class="pl-name">${p.full_name} ${isPending?'<span style="font-size:10px;background:#1a0e00;color:#f97316;border:1px solid #f97316;border-radius:10px;padding:1px 7px">EN ATTENTE</span>':''}</div>
+        <div style="font-size:11px;color:var(--G);margin-top:2px">${roleLabel(p.role)}${p.categories?' · '+p.categories.name:''}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end">
+        ${isPending ? `<button onclick="validateUser('${p.id}')" style="background:#22c55e;color:#000;border:none;padding:5px 12px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer">✓ Valider</button>
+        <button onclick="rejectUser('${p.id}')" style="background:transparent;border:1px solid #ef4444;color:#ef4444;padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer">Refuser</button>` : ''}
+        <select onchange="changeRole('${p.id}',this.value)" style="background:var(--S2);border:1px solid var(--S3);border-radius:6px;color:var(--Y);font-size:11px;padding:4px 6px">
+          <option value="player_major"${p.role==='player_major'?' selected':''}>Joueur majeur</option>
+          <option value="player_minor"${p.role==='player_minor'?' selected':''}>Joueur mineur</option>
+          <option value="parent"${p.role==='parent'?' selected':''}>Parent</option>
+          <option value="coach"${p.role==='coach'?' selected':''}>Coach</option>
+          <option value="admin"${p.role==='admin'?' selected':''}>Admin</option>
+        </select>
+      </div>
+    </div>`;
+  };
+  
+  document.getElementById('adminMemberList').innerHTML = 
+    (pending.length ? `<div class="sl"><i class="ti ti-clock"></i>En attente de validation (${pending.length})<div class="sl-line"></div></div>` + pending.map(memberCard).join('') : '') +
+    (validated.length ? `<div class="sl"><i class="ti ti-check"></i>Membres validés<div class="sl-line"></div></div>` + validated.map(memberCard).join('') : '');
+}
+
+window.validateUser = async (userId) => {
+  await db.from('profiles').update({validated: true}).eq('id', userId);
+  // Envoyer notification à l'utilisateur
+  await db.from('notifications').insert({user_id: userId, type:'validation', title:'Compte validé !', body:'Votre compte a été validé par un administrateur. Vous avez maintenant accès à toutes les fonctionnalités.'});
+  toast('Compte validé ✓'); drawAdminMembers();
+};
+
+window.rejectUser = async (userId) => {
+  if (!confirm('Supprimer ce compte ?')) return;
+  await db.auth.admin.deleteUser(userId);
+  toast('Compte refusé et supprimé'); drawAdminMembers();
+};
+
+function drawAdmin() {
+  admTab('add');
+  // Pré-sélectionner catégorie du coach
+  if (!isAdmin() && me.category_id) {
+    const nc = document.getElementById('nCat');
+    if (nc) { nc.value = me.category_id; nc.disabled = true; }
+  }
+}
+
+// ═══ PROFIL ════════════════════════════════════════════
+function drawProfile() {
+  setTimeout(() => { if (isParent()||isAdmin()) loadChildren(); }, 100);
+  const ini = me.full_name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+  const catCol = me.categories?.color || CAT_COLORS[me.categories?.name] || '#888';
+  document.getElementById('profileContent').innerHTML = `
+    <div style="text-align:center;padding:20px 0 24px">
+      <div class="prof-avatar">${ini}</div>
+      <div style="font-size:20px;font-weight:800;color:var(--Y)">${me.full_name}</div>
+      <div style="font-size:13px;color:var(--G);margin-top:4px">${roleLabel(me.role)}${me.categories?` · <span style="color:${catCol}">${me.categories.name}</span>`:''}</div>
+    </div>
+    <div class="card">
+      <div class="sl"><i class="ti ti-calendar-check"></i>Mes inscriptions<div class="sl-line"></div></div>
+      <div style="font-size:28px;font-weight:900;color:var(--Y);text-align:center;padding:10px 0">${myRegs.length}</div>
+      <div style="font-size:11px;color:var(--G);text-align:center;text-transform:uppercase;letter-spacing:1px">séances confirmées</div>
+    </div>
+    ${isMinor()?`<div class="card" style="margin-top:10px;border-color:#2563eb">
+      <div style="font-size:13px;color:#60a5fa;display:flex;align-items:center;gap:8px"><i class="ti ti-info-circle" style="font-size:18px"></i>
+      Votre compte est géré par votre parent. Contactez votre coach pour toute modification.</div>
+    </div>`:''}
+    ${isParent()||isAdmin()?`<div class="card" style="margin-top:10px">
+      <div class="sl"><i class="ti ti-users"></i>Mes enfants<div class="sl-line"></div></div>
+      <div id="childrenList">Chargement...</div>
+      <button onclick="openAddChild()" class="btn-yout" style="width:100%;margin-top:10px;padding:10px;border-radius:8px;font-size:13px;font-weight:700"><i class="ti ti-plus"></i> Ajouter un enfant</button>
+    </div>`:''}
+    <div class="card" style="margin-top:10px">
+      <div class="sl"><i class="ti ti-edit"></i>Modifier mon profil<div class="sl-line"></div></div>
+      <div class="fg"><label class="fl">Nom complet</label><input class="fi" id="editName" value="${me.full_name}"></div>
+      <div class="fg"><label class="fl">Catégorie</label>
+        <select class="fi" id="editCat">
+          <option value="">--</option>
+          ${allCategories.map(cat => '<option value="'+cat.id+'"'+(me.category_id===cat.id?' selected':'')+'>'+cat.name+'</option>').join('')}
+        </select>
+      </div>
+      <button onclick="saveProfile()" class="btn-y" style="margin-top:4px">Enregistrer</button>
+    </div>
+    <button onclick="doLogout()" style="width:100%;margin-top:14px;padding:13px;border-radius:8px;background:transparent;border:1.5px solid var(--RD);color:var(--RD);font-size:14px;font-weight:800"><i class="ti ti-logout"></i> Se déconnecter</button>`;
+}
+
+// ═══ NOTIFICATIONS ════════════════════════════════════
+async function notifyCategory(catId, payload) {
+  let q = db.from('profiles').select('id');
+  if (catId) q = q.eq('category_id', catId);
+  const { data } = await q;
+  if (!data?.length) return;
+  const notifs = data.map(p => ({user_id:p.id, ...payload}));
+  await db.from('notifications').insert(notifs);
+}
+
+// ═══ MODAL ════════════════════════════════════════════
+window.closeModal = () => { document.getElementById('modal').style.display='none'; };
+window.bgClose = (ev) => { if(ev.target===document.getElementById('modal')) closeModal(); };
+
+// ═══ ENFANTS ══════════════════════════════════════════
+async function loadChildren() {
+  const { data } = await db.from('children').select('*, categories(name,color)').eq('parent_id', me.id).order('full_name');
+  const list = document.getElementById('childrenList');
+  if (!list) return;
+  if (!data?.length) { list.innerHTML = '<div style="font-size:13px;color:var(--G);text-align:center;padding:10px">Aucun enfant enregistré</div>'; return; }
+  list.innerHTML = data.map(ch => {
+    const col = ch.categories?.color || '#888';
+    const ini = ch.full_name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+    const age = ch.birth_date ? Math.floor((new Date()-new Date(ch.birth_date))/31557600000) + ' ans' : '';
+    return `<div class="pl-item" style="margin-bottom:6px">
+      <div class="av" style="border-color:${col};background:${col}22;color:${col}">${ini}</div>
+      <div style="flex:1">
+        <div class="pl-name">${ch.full_name} <span class="minor">MINEUR</span></div>
+        <div style="font-size:12px;color:var(--G);margin-top:2px">${age}${ch.categories?' · '+ch.categories.name:''}</div>
+      </div>
+      <button class="btn-del" onclick="deleteChild('${ch.id}')"><i class="ti ti-trash"></i></button>
+    </div>`;
+  }).join('');
+}
+
+window.deleteChild = async (id) => {
+  if (!confirm('Supprimer cet enfant ?')) return;
+  await db.from('children').delete().eq('id', id);
+  toast('Enfant supprimé'); loadChildren();
+};
+
+window.openAddChild = async () => {
+  const { data: cats } = await db.from('categories').select('*').order('name');
+  document.getElementById('moTitle').textContent = 'Ajouter un enfant';
+  document.getElementById('moCfm').style.display = 'block';
+  document.getElementById('moCfm').textContent = 'Ajouter';
+  document.getElementById('moBody').innerHTML = `
+    <div class="fg"><label class="fl">Nom complet</label><input class="fi" id="childName" placeholder="Prénom Nom"></div>
+    <div class="fg"><label class="fl">Date de naissance</label><input class="fi" type="date" id="childBirth"></div>
+    <div class="fg"><label class="fl">Catégorie</label>
+      <select class="fi" id="childCat">
+        ${(cats||[]).map(c=>`<option value="${c.id}">${c.name}</option>`).join('')}
+      </select>
+    </div>
+    <div style="font-size:12px;color:var(--G);margin-top:8px"><i class="ti ti-info-circle"></i> L'enfant sera rattaché à votre compte. Vous gérerez ses inscriptions à sa place.</div>`;
+  // Override confirmModal pour cet usage
+  document.getElementById('moCfm').onclick = addChild;
+  document.getElementById('modal').style.display = 'flex';
+};
+
+async function addChild() {
+  const name = document.getElementById('childName')?.value.trim();
+  const birth = document.getElementById('childBirth')?.value;
+  const catId = document.getElementById('childCat')?.value;
+  if (!name) { toast('Remplissez le nom'); return; }
+  const { error } = await db.from('children').insert({ parent_id: me.id, full_name: name, birth_date: birth||null, category_id: catId||null });
+  if (error) { toast('Erreur: '+error.message); return; }
+  toast('Enfant ajouté ✓'); closeModal(); loadChildren();
+}
+
+// Surcharger openRegModal pour inclure les enfants de la table children
+async function openRegModal(eventId) {
+  selEventId = eventId;
+  const e = allEvents.find(x=>x.id===eventId);
+  // Récupérer les enfants du compte courant
+  const { data: children } = await db.from('children').select('*').eq('parent_id', me.id);
+  
+  // Pour admin/coach : récupérer aussi tous les joueurs et enfants
+  let allPlayersHtml = '';
+  if (canManage()) {
+    const { data: players } = await db.from('profiles').select('id, full_name, role, categories(name)').in('role',['player_major','player_minor']).order('full_name');
+    const { data: allChildren } = await db.from('children').select('*, profiles(full_name)').order('full_name');
+    const playerOpts = (players||[]).map(p => `<option value="player_${p.id}">${p.full_name} (${roleLabel(p.role)}${p.categories?' · '+p.categories.name:''})</option>`).join('');
+    const childOpts = (allChildren||[]).map(ch => `<option value="child_${ch.id}">${ch.full_name} (enfant de ${ch.profiles?.full_name||'?'})</option>`).join('');
+    allPlayersHtml = `<div class="fg"><label class="fl">Inscrire</label>
+      <select class="fi" id="childSel">
+        <option value="me">Moi-même</option>
+        <optgroup label="── Joueurs ──">${playerOpts}</optgroup>
+        <optgroup label="── Enfants ──">${childOpts}</optgroup>
+      </select></div>`;
+  } else {
+    // Parent/joueur majeur
+    allPlayersHtml = children?.length
+      ? `<div class="fg"><label class="fl">Inscrire</label>
+         <select class="fi" id="childSel">
+           <option value="me">Moi-même</option>
+           ${children.map(ch=>`<option value="child_${ch.id}">${ch.full_name}</option>`).join('')}
+         </select></div>`
+      : `<div style="padding:10px;background:var(--S2);border-radius:8px;font-size:14px;color:var(--GL)">Inscription en tant que <strong style="color:var(--Y)">${me.full_name}</strong></div>`;
+  }
+
+  document.getElementById('moTitle').textContent = 'Inscrire à la séance';
+  document.getElementById('moCfm').style.display = 'block';
+  document.getElementById('moCfm').textContent = 'Confirmer l\'inscription';
+  document.getElementById('moCfm').onclick = confirmModal;
+  document.getElementById('moBody').innerHTML = `
+    <div class="card-meta" style="margin-bottom:12px"><i class="ti ti-clock"></i>${FMT(e.date)} à ${e.time}</div>
+    <div class="card-meta" style="margin-bottom:14px"><i class="ti ti-map-pin"></i>${e.location||'Gymnase du club'}</div>
+    ${allPlayersHtml}`;
+  document.getElementById('modal').style.display = 'flex';
+}
+
+window.confirmModal = async () => {
+  const childSel = document.getElementById('childSel');
+  const val = childSel?.value || 'me';
+  if (val === 'me' || !childSel) {
+    const { error } = await db.from('registrations').insert({event_id:selEventId, player_id:me.id});
+    if (!error) { myRegs.push(selEventId); toast('Inscription confirmée ✓'); }
+    else toast('Erreur: '+error.message);
+  } else if (val.startsWith('child_')) {
+    const childId = val.replace('child_','');
+    const { error } = await db.from('registrations').insert({event_id:selEventId, player_id:me.id, child_id:childId, registered_by:me.id});
+    if (!error) toast('Enfant inscrit ✓');
+    else toast('Erreur: '+error.message);
+  } else if (val.startsWith('player_')) {
+    const playerId = val.replace('player_','');
+    const { error } = await db.from('registrations').insert({event_id:selEventId, player_id:playerId, registered_by:me.id});
+    if (!error) toast('Joueur inscrit ✓');
+    else toast('Erreur: '+error.message);
+  }
+  closeModal(); await loadEvents(); drawEvents();
+};
+
+// ═══ ÉDITION SÉANCE ══════════════════════════════════
+window.editEvent = async (eventId) => {
+  const e = allEvents.find(x=>x.id===eventId);
+  if (!e) return;
+  const { data: cats } = await db.from('categories').select('*').order('name');
+  const catOpts = (cats||[]).map(c=>`<option value="${c.id}"${e.category_id===c.id?' selected':''}>${c.name}</option>`).join('');
+  document.getElementById('moTitle').textContent = '✏️ Modifier la séance';
+  document.getElementById('moCfm').style.display = 'block';
+  document.getElementById('moCfm').textContent = 'Enregistrer';
+  document.getElementById('moCfm').onclick = () => saveEvent(eventId);
+  document.getElementById('moBody').innerHTML = `
+    <div class="fg"><label class="fl">Type</label>
+      <select class="fi" id="eType">
+        <option value="match"${e.type==='match'?' selected':''}>Match</option>
+        <option value="training"${e.type==='training'?' selected':''}>Entraînement</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Titre</label>
+      <input class="fi" id="eTitle" value="${e.title||''}">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="fg"><label class="fl">Date</label><input class="fi" type="date" id="eDate" value="${e.date}"></div>
+      <div class="fg"><label class="fl">Heure</label><input class="fi" type="time" id="eTime" value="${e.time}"></div>
+    </div>
+    <div class="fg"><label class="fl">Catégorie</label><select class="fi" id="eCat"><option value="">Toutes</option>${catOpts}</select></div>
+    <div class="fg"><label class="fl">Lieu</label><input class="fi" id="eLoc" value="${e.location||''}"></div>
+    <div class="fg"><label class="fl">Domicile / Extérieur</label>
+      <select class="fi" id="eHA">
+        <option value="">—</option>
+        <option value="home"${e.home_away==='home'?' selected':''}>Domicile</option>
+        <option value="away"${e.home_away==='away'?' selected':''}>Extérieur</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Notes</label><input class="fi" id="eNotes" value="${e.notes||''}"></div>`;
+  document.getElementById('modal').style.display = 'flex';
+};
+
+async function saveEvent(eventId) {
+  const updates = {
+    type: document.getElementById('eType').value,
+    title: document.getElementById('eTitle').value.trim() || (document.getElementById('eType').value==='match'?'Match':'Entraînement'),
+    date: document.getElementById('eDate').value,
+    time: document.getElementById('eTime').value,
+    category_id: document.getElementById('eCat').value || null,
+    location: document.getElementById('eLoc').value.trim() || null,
+    home_away: document.getElementById('eHA').value || null,
+    notes: document.getElementById('eNotes').value.trim() || null,
+  };
+  if (!updates.date||!updates.time) { toast('Date et heure obligatoires'); return; }
+  const { error } = await db.from('events').update(updates).eq('id', eventId);
+  if (error) { toast('Erreur: '+error.message); return; }
+  toast('Séance modifiée ✓');
+  closeModal();
+  await loadEvents(); drawCalendar(); drawEvents(); drawAdminList();
+}
+
+// ═══ PROFIL ══════════════════════════════════════════
+window.saveProfile = async () => {
+  const name = document.getElementById('editName')?.value.trim();
+  const catId = document.getElementById('editCat')?.value || null;
+  if (!name) { toast('Le nom est obligatoire'); return; }
+  const { error } = await db.from('profiles').update({full_name: name, category_id: catId}).eq('id', me.id);
+  if (error) { toast('Erreur: ' + error.message); return; }
+  me.full_name = name; me.category_id = catId;
+  me.categories = allCategories.find(c => c.id === catId) || null;
+  toast('Profil mis a jour'); setupRoleTag();
+};
+
+// ═══ TOAST ═══════════════════════════════════════════
+window.toast = (msg) => {
+  const t = document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+};
+</script>
+</body>
+</html>
