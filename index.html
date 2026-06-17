@@ -1157,7 +1157,7 @@ async function loadChildren() {
         <div style="font-size:12px;color:var(--G);margin-top:2px">${age}</div>
         <select onchange="updateChildCat('${ch.id}',this.value)" style="margin-top:4px;background:var(--S2);border:1px solid var(--S3);border-radius:6px;color:var(--Y);font-size:11px;padding:3px 6px">
           <option value="">Categorie...</option>
-          ${allCategories.map(cat => '<option value="'+cat.id+'"'+(ch.category_id===cat.id?' selected':'')+'>'+cat.name+'</option>').join('')}
+          ${(allCategories||[]).map(cat => '<option value="'+cat.id+'"'+(ch.category_id===cat.id?' selected':'')+'>'+cat.name+'</option>').join('')}
         </select>
       </div>
       <button class="btn-del" onclick="deleteChild('${ch.id}')"><i class="ti ti-trash"></i></button>
